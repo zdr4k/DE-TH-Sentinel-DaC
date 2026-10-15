@@ -1,7 +1,6 @@
 // Detection: Azure role assignment created
 // Data source: AzureActivity
-// MITRE: Persistence / T1098 (Account Manipulation)
-// Keep the rule name (GUID) fixed. A deleted rule id cannot be reused for a while.
+// MITRE: Persistence / T1098
 
 param workspaceName string = 'log-analyst-de-lab'
 
@@ -14,7 +13,6 @@ resource workspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existin
 resource rule 'Microsoft.SecurityInsights/alertRules@2022-10-01-preview' = {
   name: ruleId
   scope: workspace
-
   kind: 'Scheduled'
 
   properties: {
