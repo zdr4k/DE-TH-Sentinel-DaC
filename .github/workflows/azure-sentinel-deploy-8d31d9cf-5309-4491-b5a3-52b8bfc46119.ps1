@@ -6,47 +6,15 @@ $WorkspaceId = $Env:workspaceId
 $Directory = $Env:directory
 $contentTypes = $Env:contentTypes
 $contentTypeMapping = @{
-    "AnalyticsRule"=@(
-        "Microsoft.SecurityInsights/alertRules",
-        "Microsoft.SecurityInsights/alertRules/actions",
-        "Microsoft.OperationalInsights/workspaces/providers/alertRules",
-        "Microsoft.OperationalInsights/workspaces/providers/alertRules/actions"
-    );
-
-    "AutomationRule"=@(
-        "Microsoft.SecurityInsights/automationRules",
-        "Microsoft.OperationalInsights/workspaces/providers/automationRules"
-    );
-
-    "HuntingQuery"=@(
-        "Microsoft.OperationalInsights/workspaces/savedSearches"
-    );
-
-    "Parser"=@(
-        "Microsoft.OperationalInsights/workspaces/savedSearches"
-    );
-
-    "Playbook"=@(
-        "Microsoft.Web/connections",
-        "Microsoft.Logic/workflows",
-        "Microsoft.Web/customApis"
-    );
-
-    "Workbook"=@(
-        "Microsoft.Insights/workbooks"
-    );
-
-    "CustomDetection"=@(
-        "Microsoft.Security/detectionRules"
-    );
-
-    "Watchlist"=@(
-        "Microsoft.SecurityInsights/watchlists",
-        "Microsoft.SecurityInsights/watchlists/watchlistItems",
-        "Microsoft.OperationalInsights/workspaces/providers/watchlists"
-    );
+    "AnalyticsRule"=@("Microsoft.OperationalInsights/workspaces/providers/alertRules", "Microsoft.OperationalInsights/workspaces/providers/alertRules/actions");
+    "AutomationRule"=@("Microsoft.OperationalInsights/workspaces/providers/automationRules");
+    "HuntingQuery"=@("Microsoft.OperationalInsights/workspaces/savedSearches");
+    "Parser"=@("Microsoft.OperationalInsights/workspaces/savedSearches");
+    "Playbook"=@("Microsoft.Web/connections", "Microsoft.Logic/workflows", "Microsoft.Web/customApis");
+    "Workbook"=@("Microsoft.Insights/workbooks");
+    "CustomDetection"=@("Microsoft.Security/detectionRules");
+    "Watchlist"=@("Microsoft.OperationalInsights/workspaces/providers/watchlists", "Microsoft.SecurityInsights/watchlists");
 }
-
 $sourceControlId = $Env:sourceControlId
 $rootDirectory = $Env:rootDirectory
 $githubAuthToken = $Env:githubAuthToken
@@ -589,7 +557,7 @@ function Deployment($fullDeploymentFlag, $remoteShaTable, $tree) {
 
             if ($path -like "*.bicep") {
                 $templateType = "Bicep"
-               $templateObject = az bicep build --file $path --stdout | Out-String | ConvertFrom-Json
+                $templateObject = bicep build $path --stdout | Out-String | ConvertFrom-Json
             } else {
                 $templateType = "ARM"
                 $templateObject = Get-Content $path | Out-String | ConvertFrom-Json
