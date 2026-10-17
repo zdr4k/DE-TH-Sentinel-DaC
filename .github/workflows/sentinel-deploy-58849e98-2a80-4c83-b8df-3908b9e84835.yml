@@ -2,12 +2,11 @@ name: Deploy Content to log-analyst-de-lab [58849e98-2a80-4c83-b8df-3908b9e84835
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
     paths:
-      - '**'
-      - '!.github/workflows/**'
-      - '.github/workflows/sentinel-deploy-58849e98-2a80-4c83-b8df-3908b9e84835.yml'
+    - 'Detections/**'
+    - '!.github/workflows/**'
+    - '.github/workflows/sentinel-deploy-a63f132e-c4ec-4a4a-a84e-fc46a6f44880.yml'
 
 jobs:
   deploy-content:
@@ -17,7 +16,7 @@ jobs:
       resourceGroupName: 'rg-de-lab'
       workspaceName: 'log-analyst-de-lab'
       workspaceId: 'c483c246-5118-402e-851f-0f1a66dbf700'
-      directory: '${{ github.workspace }}'
+      directory: '${{ github.workspace }}/Detections'
       cloudEnv: 'AzureCloud'
       contentTypes: 'AnalyticsRule,AutomationRule,HuntingQuery,Parser,Playbook,Workbook,Watchlist'
       branch: 'main'
