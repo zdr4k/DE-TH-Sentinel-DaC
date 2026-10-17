@@ -1,0 +1,44 @@
+id: d3c1a7f2-6b4e-4c8a-9e51-2f7a0b8c4d16
+display_name: "Azure role assignment created"
+description: "Identifies successful role assignment writes in the Azure Activity log, which means a user or service principal was granted a new role in the Azure environment."
+severity: "Medium"
+enabled: true
+query: |
+  AzureActivity
+  | where TimeGenerated > ago(1h)
+  | where OperationNameValue =~ "MICROSOFT.AUTHORIZATION/ROLEASSIGNMENTS/WRITE"
+  | where ActivityStatusValue =~ "Success"
+  | project TimeGenerated, Callerr, CallerIpAddress, ResourceGroup, SubscriptionId, _ResourceId
+query_frequency: "PT15M"
+query_period: "PT1H"
+trigger_operator: "GreaterThan"
+trigger_threshold: 0
+suppression_enabled: false
+suppression_duration: "PT1H"
+mitre_mapping:
+  - tactic: "Persistence"
+    techniques:
+      - "T1098"
+  - tactic: "PrivilegeEscalation"
+    techniques:
+      - "T1098"
+entity_mappings:
+  - entity_type: "Account"
+    field_mappings:
+      - identifier: "FullName"
+        column_name: "Caller"
+  - entity_type: "IP"
+    field_mappings:
+      - identifier: "Address"
+        column_name: "CallerIpAddress"
+incident_configuration:
+  create_incident: true
+  grouping_enabled: false
+custom_details: {}
+event_grouping:
+  aggregation_method: "AlertPerResult"
+meta:
+  owner: "Kelvin Santos"
+  references: []
+version: "1.0.0"
+kind: "Scheduled"
