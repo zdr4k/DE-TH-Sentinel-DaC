@@ -12,7 +12,7 @@ resource rule 'Microsoft.OperationalInsights/workspaces/providers/alertRules@202
   kind: 'Scheduled'
   properties: {
     displayName: 'Azure role assignment created'
-    description: 'Identifies successful role assignment writes in the Azure Activity log, which means a user or service principal was granted a new role.'
+    description: 'Identifies successful role assignment writes in the Azure Activity log, which means a user or service principal was granted a new role in the Azure environment.'
     enabled: true
     severity: 'Medium'
     query: '''
