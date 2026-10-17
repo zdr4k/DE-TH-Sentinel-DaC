@@ -1,0 +1,80 @@
+name: Validate rule schema
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rules-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  schema:
+    name: Rule schema validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Validate every rule against the schema
+        run: |
+          status=0
+          for f in Rules/*.yml; do
+            python Tools/validate_rule.py "$f" || status=1
+          done
+          exit $status
+
+      - name: Check for duplicate rule ids
+        run: python Tools/check_duplicate_ids.py
+
+  bicep:
+    name: Generate Bicep
+    needs: schema
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the pull request branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.BICEP_BOT_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate the Bicep of every rule
+        run: |
+          for f in Rules/*.yml; do
+            python Tools/build_bicep.py "$f"
+          done
+
+      - name: Commit the generated Bicep
+        run: |
+          if [ -z "$(git status --porcelain Detections)" ]; then
+            echo "Bicep is up to date. Nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Detections
+          git commit -m "chore: generate Bicep from rules"
+          git push
