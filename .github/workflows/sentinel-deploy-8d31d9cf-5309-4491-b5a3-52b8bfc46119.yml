@@ -24,7 +24,7 @@ jobs:
       resourceGroupName: 'rg-de-lab'
       workspaceName: 'log-analyst-de-lab'
       workspaceId: 'c483c246-5118-402e-851f-0f1a66dbf700'
-      directory: '${{ github.workspace }}'
+      directory: '${{ github.workspace }}/Detections'
       cloudEnv: 'AzureCloud'
       contentTypes: 'AnalyticsRule,AutomationRule,HuntingQuery,Parser,Workbook,Playbook,Watchlist'
       branch: 'main'
