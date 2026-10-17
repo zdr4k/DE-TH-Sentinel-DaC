@@ -1,6 +1,6 @@
 id: d3c1a7f2-6b4e-4c8a-9e51-2f7a0b8c4d16
 display_name: "Azure role assignment created"
-description: "Identifies successful role assignment writes in the Azure Activity log, which means a user or service principal was granted a new role."
+description: "Identifies successful role assignment writes in the Azure Activity log, which means a user or service principal was granted a new role in the Azure environment."
 severity: "Medium"
 enabled: true
 query: |
