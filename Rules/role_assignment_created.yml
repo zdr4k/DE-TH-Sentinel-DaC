@@ -8,7 +8,7 @@ query: |
   | where TimeGenerated > ago(1h)
   | where OperationNameValue =~ "MICROSOFT.AUTHORIZATION/ROLEASSIGNMENTS/WRITE"
   | where ActivityStatusValue =~ "Success"
-  | project TimeGenerated, Calleer, CallerIpAddress, ResourceGroup, SubscriptionId, _ResourceId
+  | project TimeGenerated, Caller, CallerIpAddress, ResourceGroup, SubscriptionId, _ResourceId
 query_frequency: "PT15M"
 query_period: "PT1H"
 trigger_operator: "GreaterThan"
