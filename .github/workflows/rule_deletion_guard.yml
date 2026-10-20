@@ -1,0 +1,54 @@
+name: Rule deletion guard
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    name: Detect deleted rules
+    runs-on: ubuntu-latest
+    outputs:
+      deleted: ${{ steps.find.outputs.deleted }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      - name: Find the rules deleted by this pull request
+        id: find
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          files=$(git diff --diff-filter=D --name-only "$BASE_SHA" HEAD -- 'Rules/*.yml')
+          if [ -z "$files" ]; then
+            echo "deleted=false" >> "$GITHUB_OUTPUT"
+            echo "No rule was deleted."
+            exit 0
+          fi
+          echo "deleted=true" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Rules deleted in this pull request"
+            echo ""
+            echo "Deleting the file does not delete the rule in Sentinel. Delete it in the portal after the merge."
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+          for f in $files; do
+            id=$(git show "$BASE_SHA:$f" | sed -n 's/^id: *//p' | head -1)
+            echo "::warning title=Rule deleted::$f (id $id) is deleted by this pull request"
+            echo "- \`$f\` (id \`$id\`)" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+  approval:
+    name: Rule deletion approval
+    needs: detect
+    if: needs.detect.outputs.deleted == 'true'
+    runs-on: ubuntu-latest
+    environment: rule-deletion
+    steps:
+      - name: Deletion approved
+        run: echo "Approved. After the merge, delete the rule in the Sentinel portal too."
