@@ -30,6 +30,7 @@ jobs:
 
       - name: Validate every rule against the schema
         run: |
+          shopt -s nullglob
           status=0
           for f in Rules/*.yml; do
             python Tools/validate_rule.py "$f" || status=1
@@ -95,6 +96,7 @@ jobs:
 
       - name: Generate the Bicep of every rule
         run: |
+          shopt -s nullglob
           for f in Rules/*.yml; do
             python Tools/build_bicep.py "$f"
           done
