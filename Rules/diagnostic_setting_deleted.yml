@@ -8,7 +8,7 @@ query: |
   | where TimeGenerated > ago(1h)
   | where OperationNameValue =~ "MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/DELETE"
   | where ActivityStatusValue =~ "Success"
-  | project TimeGenerated, Caller, ResourceGroup, SubscriptionId, _ResourceId
+  | project TimeGenerated, Caller, CallerIpAddress, ResourceGroup, SubscriptionId, _ResourceId
 query_frequency: "PT15M"
 query_period: "PT1H"
 trigger_operator: "GreaterThan"
