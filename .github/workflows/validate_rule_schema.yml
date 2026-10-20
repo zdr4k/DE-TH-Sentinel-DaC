@@ -66,6 +66,9 @@ jobs:
 
       - name: Validate every query against the table schemas
         run: python Tools/validate_kql_query_schema.py
+      
+      - name: Check entity mapping columns
+        run: python Tools/check_entity_columns.py
 
 
   bicep:
