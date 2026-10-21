@@ -32,12 +32,12 @@ The data source is Azure Activity logs in the `AzureActivity` table. `OperationN
 
 ## Blind Spots and Assumptions
 <!-- ads:draft -->
-The rule only works if Azure Activity logs are being ingested into Sentinel. It only detects successful delete events, not failed attempts or indirect ways to reduce logging that use other operations. The query window is one hour, so events outside that period are not evaluated. The rule assumes `Caller` and `CallerIpAddress` are populated in the event.
+The rule assumes Azure Activity logging is enabled and ingested; without that connector and diagnostic pipeline, no events are available to detect. `query_period` is 1 hour and `query_frequency` is 15 minutes, so the same event remains in scope for 4 runs. Because `suppression_enabled` is false and incident grouping is disabled, repeated evaluations are not absorbed and can create duplicate alerts. The rule also uses `trigger_operator: GreaterThan` with `trigger_threshold: 0`, so any single matching event can fire an alert on this potentially noisy table.
 <!-- /ads:draft -->
 
 ## False Positives
 <!-- ads:draft -->
-Legitimate administration can produce this alert during planned logging changes, environment teardown, or infrastructure-as-code updates. Benign events are usually associated with approved change windows and expected automation identities. Compare the caller, source IP, and target resource with known maintenance activity before escalating.
+Legitimate administration can produce this alert during planned logging changes, environment teardown, or infrastructure-as-code updates. Because each matching event can be evaluated in 4 consecutive runs and duplicate absorption is disabled, benign actions can raise repeated alerts for the same operation. Approved change windows, expected automation identities, and repeated alerts with the same caller and target resource are indicators of a likely benign case.
 <!-- /ads:draft -->
 
 ## Validation

@@ -33,12 +33,12 @@ The rule uses Azure control-plane telemetry in `AzureActivity`. `OperationNameVa
 
 ## Blind Spots and Assumptions
 <!-- ads:draft -->
-This rule depends on Azure Activity ingestion into Sentinel and visibility of role assignment writes in that stream. It does not identify failed attempts or provide role definition details from this query output alone. Events outside the one-hour query period are not evaluated in each run. The detection assumes `Caller` and `CallerIpAddress` fields are present for entity mapping.
+This rule assumes Azure Activity logging is enabled and ingested; without that data source, role assignment writes are not visible to the query. `query_period` is 1 hour and `query_frequency` is 15 minutes, so one event can be evaluated in 4 runs. With `suppression_enabled` set to false and incident grouping disabled, those repeated evaluations are not absorbed and may generate duplicate alerts. The rule also uses `trigger_operator: GreaterThan` with `trigger_threshold: 0`, so any single matching write can trigger an alert on a table that may include frequent legitimate administration.
 <!-- /ads:draft -->
 
 ## False Positives
 <!-- ads:draft -->
-Expected IAM administration and approved automation can legitimately create role assignments. Common benign cases include onboarding users, service principal provisioning, and infrastructure deployments. Validate alerts against planned access changes, approved identities, and expected source locations before treating them as suspicious.
+Expected IAM administration and approved automation can legitimately create role assignments. Common benign cases include onboarding users, service principal provisioning, and infrastructure deployments. Because the same event can be re-evaluated in 4 runs and duplicate absorption is disabled, one approved change can raise multiple alerts. Validate alerts against planned access changes, approved identities, and repeated matches with the same caller and target scope before treating activity as suspicious.
 <!-- /ads:draft -->
 
 ## Validation
