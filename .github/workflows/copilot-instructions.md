@@ -10,7 +10,15 @@ When asked to write or update an ADS (Alerting and Detection Strategy) document 
 2. Write one document per rule, at `Docs/ADS/<rule file name without .yml>.md`. Use `Templates/ads_template.md` as the structure. Keep every heading and every marker comment.
 3. Sections marked `<!-- ads:fixed -->` are filled from the rule YAML only. Copy the values, do not rewrite them. For Categorization, list each tactic with its techniques from `mitre_mapping`. For Priority, give the `severity` and one sentence on why.
 4. Sections marked `<!-- ads:draft -->` are written by you. Base them on the `query`, `description`, `entity_mappings` and the table schema in `Schemas/tables/`. Do not invent data you cannot see. If something is unknown, say so.
-5. If the ADS file already exists, the analyst owns it. Replace only sections that still have `<!-- ads:draft -->`. A section whose marker was removed or changed to `<!-- ads:analyst -->` must not be touched, even if you disagree with it. Update the `ads:fixed` sections if the YAML changed.
+4a. Before writing Blind Spots and Assumptions and False Positives, check these rule fields and mention every problem you find:
+   - query_period larger than query_frequency: the same event stays in the lookback window for several runs and can raise repeated alerts. State how many runs (query_period divided by query_frequency).
+   - suppression_enabled false together with the overlap above, or with incident_configuration.grouping_enabled false: say that duplicates are not absorbed.
+   - query_period smaller than query_frequency: events between runs are never evaluated. Report it as a coverage gap.
+   - query_period equal to query_frequency: events that arrive late in the table, because of ingestion delay, can be missed.
+   - trigger_threshold 0 with trigger_operator GreaterThan on a noisy table: say the rule fires on any single event.
+   - An entity_mappings column that the query does not return, or a table that needs a specific diagnostic setting or connector to be populated: state it as an assumption.
+   Only report what the YAML and the query show. Do not guess at the environment.
+5. If the ADS file already exists, the analyst owns it. Replace only sections wrapped in `<!-- ads:draft -->` ... `<!-- /ads:draft -->`. A section wrapped in `<!-- ads:analyst -->` ... `<!-- /ads:analyst -->`, or one whose marker was removed or changed in any way, must not be touched, even if you disagree with it. Update the `ads:fixed` sections if the YAML changed.
 6. Do not run or modify the KQL. Do not paste secrets or tenant specific names.
 7. Write in plain, direct English. No marketing language.
 8. At the end, list in the PR comment which sections you wrote, which you left alone, and anything you were unsure about.
