@@ -38,7 +38,7 @@ This rule assumes Azure Activity logging is enabled and ingested; without that d
 
 ## False Positives
 <!-- ads:draft -->
-Expected IAM administration and approved automation can legitimately create role assignments. Common benign cases include onboarding users, service principal provisioning, and infrastructure deployments. Because the same event can be re-evaluated in 4 runs and duplicate absorption is disabled, one approved change can raise multiple alerts. Validate alerts against planned access changes, approved identities, and repeated matches with the same caller and target scope before treating activity as suspicious.
+Expected IAM administration and approved automation can legitimately create role assignments. Common benign cases include onboarding users, service principal provisioning, and infrastructure deployments. Because the same event can be re-evaluated in 4 runs and duplicate absorption is disabled, one approved change can raise multiple alerts. Validate alerts against planned access changes, approved identities, and repeated matches with the same caller and `_ResourceId` before treating activity as suspicious.
 <!-- /ads:draft -->
 
 ## Validation

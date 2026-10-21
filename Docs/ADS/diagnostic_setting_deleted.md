@@ -39,7 +39,7 @@ Analyst note: reviewed on 21 October 2026 against the production workspace, repe
 
 ## False Positives
 <!-- ads:draft -->
-Legitimate administration can produce this alert during planned logging changes, environment teardown, or infrastructure-as-code updates. Because each matching event can be evaluated in 4 consecutive runs and duplicate absorption is disabled, benign actions can raise repeated alerts for the same operation. Approved change windows, expected automation identities, and repeated alerts with the same caller and target resource are indicators of a likely benign case.
+Legitimate administration can produce this alert during planned logging changes, environment teardown, or infrastructure-as-code updates. Because each matching event can be evaluated in 4 consecutive runs and duplicate absorption is disabled, one benign delete operation can generate repeated alerts. Approved change windows, expected automation identities, and repeated alerts with the same caller and `_ResourceId` are indicators of a likely benign case.
 <!-- /ads:draft -->
 
 ## Validation
