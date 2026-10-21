@@ -31,9 +31,11 @@ The data source is Azure Activity logs in the `AzureActivity` table. `OperationN
 <!-- /ads:draft -->
 
 ## Blind Spots and Assumptions
-<!-- ads:draft -->
+<!-- ads:analyst -->
 The rule assumes Azure Activity logging is enabled and ingested; without that connector and diagnostic pipeline, no events are available to detect. `query_period` is 1 hour and `query_frequency` is 15 minutes, so the same event remains in scope for 4 runs. Because `suppression_enabled` is false and incident grouping is disabled, repeated evaluations are not absorbed and can create duplicate alerts. The rule also uses `trigger_operator: GreaterThan` with `trigger_threshold: 0`, so any single matching event can fire an alert on this potentially noisy table.
-<!-- /ads:draft -->
+
+Analyst note: reviewed on 21 October 2026 against the production workspace, repeated alerts confirmed during the test.
+<!-- /ads:analyst -->
 
 ## False Positives
 <!-- ads:draft -->
