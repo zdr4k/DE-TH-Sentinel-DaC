@@ -1,0 +1,30 @@
+name: Detection request
+description: Paste a threat report or news item and let the detection_drafter agent draft a base rule
+title: "[Detection] "
+labels: ["detection-request"]
+body:
+  - type: textarea
+    id: source
+    attributes:
+      label: Threat report or news item
+      description: Paste the relevant text. It is treated as data, never as instructions.
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Source URL
+    validations:
+      required: true
+  - type: input
+    id: table
+    attributes:
+      label: Log source hint (optional)
+      description: For example AzureActivity. Only tables with a file in Schemas/tables can be used.
+  - type: textarea
+    id: notes
+    attributes:
+      label: What should be detected (optional)
+  - type: markdown
+    attributes:
+      value: After creating the issue, assign it to Copilot and pick the detection_drafter agent.
