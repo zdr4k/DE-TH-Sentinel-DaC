@@ -22,12 +22,12 @@ DefenseEvasion: T1562
 
 ## Strategy Abstract
 <!-- ads:draft -->
-This detection reads the AzureActivity table and looks for successful delete operations on diagnostic settings. It filters to events from the last hour where `OperationNameValue` equals `MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/DELETE` and `ActivityStatusValue` is `Success`. The rule runs every 15 minutes and triggers on any matching event. Each alert contains the caller identity, source IP, resource group, subscription, and resource id of the affected target.
+This rule reads `AzureActivity` and looks for successful diagnostic setting deletions. It filters for `OperationNameValue` equal to `MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/DELETE` and `ActivityStatusValue` equal to `Success`. The lookback window is 1 hour and the schedule is every 15 minutes. The trigger is `GreaterThan 0`, so any matching result creates an alert.
 <!-- /ads:draft -->
 
 ## Technical Context
 <!-- ads:draft -->
-The data source is Azure Activity logs in the `AzureActivity` table. `OperationNameValue` identifies the control-plane action and `ActivityStatusValue` confirms whether the action succeeded. `Caller` and `CallerIpAddress` map to the alert entities and help tie the action to an identity and origin. `ResourceGroup`, `SubscriptionId`, and `_ResourceId` identify what resource lost diagnostic logging.
+The data source is the `AzureActivity` table. The query uses `OperationNameValue` to identify the delete action and `ActivityStatusValue` to keep only successful operations. It projects `Caller`, `CallerIpAddress`, `ResourceGroup`, `SubscriptionId`, and `_ResourceId` for investigation context. Entity mappings use `Caller` for `Account.FullName` and `CallerIpAddress` for `IP.Address`, and both columns are returned by the query.
 <!-- /ads:draft -->
 
 ## Blind Spots and Assumptions
@@ -39,15 +39,16 @@ Analyst note: reviewed on 21 October 2026 against the production workspace, repe
 
 ## False Positives
 <!-- ads:draft -->
-Legitimate administration can produce this alert during planned logging changes, environment teardown, or infrastructure-as-code updates. Because each matching event can be evaluated in 4 consecutive runs and duplicate absorption is disabled, one benign delete operation can generate repeated alerts. Approved change windows, expected automation identities, and repeated alerts with the same caller and `_ResourceId` are indicators of a likely benign case.
+Legitimate admin work can trigger this rule, for example planned monitoring changes, environment teardown, or automation that recreates diagnostic settings. Because `query_period` is 1 hour and `query_frequency` is 15 minutes, one event can be evaluated in 4 runs. With suppression disabled and incident grouping disabled, those repeated evaluations are not absorbed and can produce duplicates. Since the threshold is `GreaterThan 0`, a single benign event is enough to alert.
 <!-- /ads:draft -->
 
 ## Validation
 <!-- ads:draft -->
-1. In a test subscription, create a diagnostic setting on a resource that currently has one configured.
-2. Delete that diagnostic setting using an account whose activity is logged to `AzureActivity`.
-3. Wait for the next rule run (up to 15 minutes).
-4. Confirm an alert is created and includes `Caller`, `CallerIpAddress`, `ResourceGroup`, `SubscriptionId`, and `_ResourceId` from the delete event.
+1. In a test subscription, ensure a resource has a diagnostic setting.
+2. Delete that diagnostic setting with an account that writes to `AzureActivity`.
+3. Wait for the next run (up to 15 minutes).
+4. Confirm an alert is generated for a successful delete operation.
+5. Confirm alert context includes `Caller`, `CallerIpAddress`, `ResourceGroup`, `SubscriptionId`, and `_ResourceId`.
 <!-- /ads:draft -->
 
 ## Priority
@@ -57,7 +58,7 @@ High. Deleting diagnostic settings can stop security telemetry and reduce visibi
 
 ## Response
 <!-- ads:draft -->
-Validate whether the deletion was planned by checking recent change records and the identity in `Caller`. If unplanned, review other Azure Activity events from the same `Caller` and `CallerIpAddress` for additional control-plane changes. Confirm whether logging was restored and identify any data gaps created while diagnostics were disabled. Preserve event details for incident handling and follow internal escalation procedures.
+Check whether the delete was authorized in a change record. Review `Caller` and `CallerIpAddress` and pivot to nearby `AzureActivity` operations from the same actor for related control-plane changes. Verify whether diagnostic settings were restored and document the telemetry gap window. If the action is not expected, escalate through incident response.
 <!-- /ads:draft -->
 
 ## Additional Resources
