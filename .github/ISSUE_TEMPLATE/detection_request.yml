@@ -14,6 +14,7 @@ body:
     id: url
     attributes:
       label: Source URL
+      description: Kept as a reference in the rule. The agent works from the pasted text and does not open this link.
     validations:
       required: true
   - type: input
