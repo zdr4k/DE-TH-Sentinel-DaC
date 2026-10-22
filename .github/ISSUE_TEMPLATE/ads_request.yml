@@ -1,0 +1,15 @@
+name: ADS request
+description: Ask the ads_writer agent to write or update the ADS document of existing rules
+title: "[ADS] "
+labels: ["ads-request"]
+body:
+  - type: textarea
+    id: rules
+    attributes:
+      label: Rule files
+      description: One path per line, for example Rules/diagnostic_setting_deleted.yml
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: After creating the issue, assign it to Copilot, pick the ads_writer agent and choose the branch that holds the rule as the base branch.
