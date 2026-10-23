@@ -127,6 +127,18 @@ function Update-Schemas {
     if ($failed) { throw "Could not download: $($failed -join ', ')" }
 }
 
+function Add-Table {
+    $name = (Read-Host 'Table name').Trim()
+    if ($name -notmatch '^[A-Za-z_][A-Za-z0-9_]*$') {
+        throw "Invalid table name '$name'"
+    }
+
+    Connect-IfNeeded
+    $workspace = Resolve-WorkspaceId
+    $path = Save-Schema (Get-TableSchema $workspace $name)
+    Write-Host ('  WROTE  {0}' -f (Resolve-Path -Relative $path))
+}
+
 
 Install-Dependencies
 
@@ -135,12 +147,14 @@ while ($true) {
     Write-Host 'Sentinel schemas'
     Write-Host '  1) Show status'
     Write-Host '  2) Update schemas (download missing and refresh existing)'
+    Write-Host '  3) Add a table by name'
     Write-Host '  0) Exit'
     $choice = Read-Host 'Choose an option'
     try {
         switch ($choice) {
             '1' { Show-Status }
             '2' { Update-Schemas }
+            '3' { Add-Table }
             '0' { return }
             default { Write-Host '  Invalid option.' }
         }
@@ -148,4 +162,5 @@ while ($true) {
     catch {
         Write-Host "  ERROR: $($_.Exception.Message)"
     }
+
 }
