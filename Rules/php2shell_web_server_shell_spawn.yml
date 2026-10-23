@@ -1,0 +1,53 @@
+id: 105ef7ed-69ee-47e8-b988-bbd2cb47cd73
+display_name: "PHP2Shell post-exploitation web server shell spawn"
+description: "Detects suspected PHP2Shell-style post-exploitation behavior where a web server process starts a shell with -c and runs reconnaissance or payload staging commands such as id, whoami, curl, wget, or base64 -d. This indicates likely remote code execution leading to command execution on internet-facing infrastructure. It does not detect the initial exploit request itself when no request-level signature is available."
+severity: "Medium"
+enabled: true
+query: |
+  let WebServerParents = dynamic(["apache2", "httpd", "nginx", "php-fpm", "php-cgi", "frankenphp", "lsphp", "litespeed"]);
+  let ShellChildren = dynamic(["sh", "bash", "dash", "zsh", "ksh"]);
+  DeviceProcessEvents
+  | where TimeGenerated > ago(1h)
+  | where InitiatingProcessFileName in~ (WebServerParents)
+      or InitiatingProcessFileName startswith "php-fpm"
+      or InitiatingProcessFileName startswith "lsphp"
+  | where FileName in~ (ShellChildren)
+  | where ProcessCommandLine contains " -c "
+  | where ProcessCommandLine has_any ("whoami", "curl", "wget")
+      or ProcessCommandLine contains "base64 -d"
+      or ProcessCommandLine matches regex @"(^|\s)id(\s|$)"
+  | project TimeGenerated, DeviceName, InitiatingProcessAccountName, InitiatingProcessFileName, InitiatingProcessCommandLine, FileName, ProcessCommandLine
+query_frequency: "PT1H"
+query_period: "PT1H"
+trigger_operator: "GreaterThan"
+trigger_threshold: 0
+suppression_enabled: false
+suppression_duration: "PT1H"
+mitre_mapping:
+  - tactic: "InitialAccess"
+    techniques:
+      - "T1190"
+  - tactic: "Execution"
+    techniques:
+      - "T1059"
+entity_mappings:
+  - entity_type: "Account"
+    field_mappings:
+      - identifier: "Name"
+        column_name: "InitiatingProcessAccountName"
+  - entity_type: "Host"
+    field_mappings:
+      - identifier: "HostName"
+        column_name: "DeviceName"
+incident_configuration:
+  create_incident: true
+  grouping_enabled: false
+custom_details: {}
+event_grouping:
+  aggregation_method: "AlertPerResult"
+meta:
+  owner: "zdr4k"
+  references:
+    - "https://www.elastic.co/security-labs/threat-command/php2shell-php-rce-detection"
+version: "1.0.0"
+kind: "Scheduled"
