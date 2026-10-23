@@ -1,0 +1,54 @@
+id: 8cf780b0-631c-41c9-b56a-7856806e48bd
+display_name: "PHP2Shell web server spawned shell execution"
+description: "Detects likely post-exploitation command execution where a web server process spawns a shell with -c and runs discovery or payload delivery commands such as id, whoami, curl, wget, or base64 decoding. This matters because PHP2Shell-style RCE commonly pivots to OS shell execution after initial compromise. It does not detect the original exploit request itself."
+severity: "Medium"
+enabled: false
+query: |
+  DeviceProcessEvents
+  | where TimeGenerated > ago(1h)
+  | where InitiatingProcessFileName in~ ("apache2", "httpd", "nginx", "php-fpm", "php-cgi", "frankenphp", "lshttpd")
+  | where FileName in~ ("sh", "bash", "dash", "ksh", "zsh")
+  | where ProcessCommandLine matches regex @"(^|\s)-c(\s|$)"
+  | where ProcessCommandLine has_any ("id", "whoami", "curl", "wget", "base64")
+  | project TimeGenerated, DeviceName, AccountName, ProcessCommandLine, FileName, InitiatingProcessFileName, InitiatingProcessCommandLine, ProcessId, InitiatingProcessId
+query_frequency: "PT1H"
+query_period: "PT1H"
+trigger_operator: "GreaterThan"
+trigger_threshold: 0
+suppression_enabled: false
+suppression_duration: "PT1H"
+mitre_mapping:
+  - tactic: "InitialAccess"
+    techniques:
+      - "T1190"
+  - tactic: "Execution"
+    techniques:
+      - "T1059"
+  - tactic: "Persistence"
+    techniques:
+      - "T1505"
+entity_mappings:
+  - entity_type: "Host"
+    field_mappings:
+      - identifier: "FullName"
+        column_name: "DeviceName"
+  - entity_type: "Account"
+    field_mappings:
+      - identifier: "Name"
+        column_name: "AccountName"
+  - entity_type: "Process"
+    field_mappings:
+      - identifier: "CommandLine"
+        column_name: "ProcessCommandLine"
+incident_configuration:
+  create_incident: true
+  grouping_enabled: false
+custom_details: {}
+event_grouping:
+  aggregation_method: "AlertPerResult"
+meta:
+  owner: "zdr4k"
+  references:
+    - "https://www.elastic.co/security-labs/threat-command/php2shell-php-rce-detection"
+version: "1.0.0"
+kind: "Scheduled"
