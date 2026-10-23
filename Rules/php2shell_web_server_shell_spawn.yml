@@ -1,7 +1,7 @@
 id: 105ef7ed-69ee-47e8-b988-bbd2cb47cd73
 display_name: "PHP2Shell post-exploitation web server shell spawn"
 description: "Detects suspected PHP2Shell-style post-exploitation behavior where a web server process starts a shell with -c and runs reconnaissance or payload staging commands such as id, whoami, curl, wget, or base64 -d. This indicates likely remote code execution leading to command execution on internet-facing infrastructure. It does not detect the initial exploit request itself when no request-level signature is available."
-severity: "High"
+severity: "Medium"
 enabled: true
 query: |
   let WebServerParents = dynamic(["apache2", "httpd", "nginx", "php-fpm", "php-cgi", "frankenphp", "lsphp", "litespeed"]);
@@ -30,22 +30,15 @@ mitre_mapping:
   - tactic: "Execution"
     techniques:
       - "T1059"
-  - tactic: "Persistence"
-    techniques:
-      - "T1505"
 entity_mappings:
   - entity_type: "Account"
     field_mappings:
-      - identifier: "FullName"
-        column_name: "InitiatingProcessAccountUpn"
+      - identifier: "Name"
+        column_name: "InitiatingProcessAccountName"
   - entity_type: "Host"
     field_mappings:
       - identifier: "HostName"
         column_name: "DeviceName"
-  - entity_type: "IP"
-    field_mappings:
-      - identifier: "Address"
-        column_name: "ProcessRemoteSessionIP"
 incident_configuration:
   create_incident: true
   grouping_enabled: false
