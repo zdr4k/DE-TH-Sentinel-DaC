@@ -7,16 +7,10 @@ query: |
   Event
   | where TimeGenerated > ago(1h)
   | where Source == "Microsoft-Windows-Sysmon" and EventID == 1
-  | extend ed = parse_xml(EventData)
-  | extend D = ed.DataItem.EventData.Data
-  | mv-apply d = D on (
-      extend name = tostring(d["@Name"]), val = tostring(d["#text"])
-      | summarize b = make_bag(pack(name, val))
-    )
-  | extend Image = tostring(b.Image),
-           CommandLine = tostring(b.CommandLine),
-           ParentImage = tostring(b.ParentImage),
-           UserName = tostring(b.User)
+  | extend Image = extract(@'<Data Name="Image">([^<]*)</Data>', 1, EventData)
+  | extend CommandLine = extract(@'<Data Name="CommandLine">([^<]*)</Data>', 1, EventData)
+  | extend ParentImage = extract(@'<Data Name="ParentImage">([^<]*)</Data>', 1, EventData)
+  | extend UserName = extract(@'<Data Name="User">([^<]*)</Data>', 1, EventData)
   | where Image endswith "powershell.exe" or Image endswith "pwsh.exe"
   | where CommandLine has_any ("-EncodedCommand", "-enc", " -e ")
   | project TimeGenerated, Computer, UserName, ParentImage, Image, CommandLine
