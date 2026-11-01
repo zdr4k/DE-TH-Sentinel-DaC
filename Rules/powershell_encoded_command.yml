@@ -1,0 +1,53 @@
+id: 30eeb49f-ed69-4406-a973-f85a10c872c8
+display_name: "PowerShell encoded command execution"
+description: "Detects PowerShell launched with an encoded command argument (-EncodedCommand / -enc / -e). Encoding the command is a common way to obscure malicious PowerShell from casual inspection and from simple command-line string matching. Reads Sysmon process creation events (Event ID 1) collected from the lab endpoint. It does not by itself confirm intent, since encoded commands have legitimate uses."
+severity: "Medium"
+enabled: true
+query: |
+  Event
+  | where TimeGenerated > ago(1h)
+  | where Source == "Microsoft-Windows-Sysmon" and EventID == 1
+  | extend ed = parse_xml(EventData)
+  | extend D = ed.DataItem.EventData.Data
+  | mv-apply d = D on (
+      extend name = tostring(d["@Name"]), val = tostring(d["#text"])
+      | summarize b = make_bag(pack(name, val))
+    )
+  | extend Image = tostring(b.Image),
+           CommandLine = tostring(b.CommandLine),
+           ParentImage = tostring(b.ParentImage),
+           UserName = tostring(b.User)
+  | where Image endswith "powershell.exe" or Image endswith "pwsh.exe"
+  | where CommandLine has_any ("-EncodedCommand", "-enc", " -e ")
+  | project TimeGenerated, Computer, UserName, ParentImage, Image, CommandLine
+query_frequency: "PT1H"
+query_period: "PT1H"
+trigger_operator: "GreaterThan"
+trigger_threshold: 0
+suppression_enabled: false
+suppression_duration: "PT1H"
+mitre_mapping:
+  - tactic: "Execution"
+    techniques:
+      - "T1059"
+entity_mappings:
+  - entity_type: "Account"
+    field_mappings:
+      - identifier: "Name"
+        column_name: "UserName"
+  - entity_type: "Host"
+    field_mappings:
+      - identifier: "HostName"
+        column_name: "Computer"
+incident_configuration:
+  create_incident: true
+  grouping_enabled: false
+custom_details: {}
+event_grouping:
+  aggregation_method: "AlertPerResult"
+meta:
+  owner: "zdr4k"
+  references:
+    - "https://attack.mitre.org/techniques/T1059/001/"
+version: "1.0.0"
+kind: "Scheduled"
